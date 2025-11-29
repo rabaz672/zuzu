@@ -62,9 +62,19 @@ class IDFProxy {
     if (this.proxyUrl) {
       try {
         console.log('Using proxy:', this.proxyUrl, 'for URL:', url);
-        const { ProxyAgent, fetch: undiciFetch } = await import('undici');
         
-        const proxyAgent = new ProxyAgent(this.proxyUrl);
+        const proxyUrlLower = this.proxyUrl.toLowerCase();
+        let proxyAgent: any;
+        
+        if (proxyUrlLower.startsWith('socks5://') || proxyUrlLower.startsWith('socks4://')) {
+          const { SocksProxyAgent } = await import('socks-proxy-agent');
+          proxyAgent = new SocksProxyAgent(this.proxyUrl);
+        } else {
+          const { ProxyAgent } = await import('undici');
+          proxyAgent = new ProxyAgent(this.proxyUrl);
+        }
+        
+        const { fetch: undiciFetch } = await import('undici');
         
         const fetchOptions: any = {
           ...options,
