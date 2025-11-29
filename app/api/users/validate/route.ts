@@ -14,11 +14,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data, cookies } = await proxy.getUserInfo(body.idNumber);
-    return NextResponse.json(data);
+    const result = await proxy.validateId(body.idNumber);
+    return NextResponse.json(result);
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { isValid: false, error: error.message || 'Internal server error' },
       { status: 500 }
     );
   }

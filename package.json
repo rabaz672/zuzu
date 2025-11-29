@@ -11,7 +11,9 @@
   "dependencies": {
     "next": "^14.0.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "https-proxy-agent": "^7.0.2",
+    "undici": "^5.28.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

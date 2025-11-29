@@ -15,7 +15,22 @@ export async function POST(request: NextRequest) {
     }
 
     const { data, cookies } = await proxy.getUserInfo(body.idNumber);
-    return NextResponse.json(data);
+    
+    let sessionCookie = '';
+    if (cookies) {
+      const cookieArray = cookies.split(';');
+      const connectSidCookie = cookieArray.find(c => c.trim().startsWith('connect.sid='));
+      if (connectSidCookie) {
+        sessionCookie = connectSidCookie.trim();
+      } else {
+        sessionCookie = cookies.trim();
+      }
+    }
+    
+    return NextResponse.json({
+      mobilePhone: data.mobilePhone,
+      sessionCookie: sessionCookie
+    });
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || 'Internal server error' },

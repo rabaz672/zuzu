@@ -7,6 +7,8 @@ export default function Home() {
   const [code, setCode] = useState('');
   const [userInfo, setUserInfo] = useState<any>(null);
   const [validationResult, setValidationResult] = useState<any>(null);
+  const [idValidation, setIdValidation] = useState<any>(null);
+  const [sessionCookie, setSessionCookie] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,9 +22,10 @@ export default function Home() {
     setError(null);
     setUserInfo(null);
     setValidationResult(null);
+    setSessionCookie('');
 
     try {
-      const response = await fetch('/api/users', {
+      const response = await fetch('/api/idf/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -37,6 +40,45 @@ export default function Home() {
       }
 
       setUserInfo(data);
+      if (data.sessionCookie) {
+        setSessionCookie(data.sessionCookie);
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleValidateId = async () => {
+    if (!idNumber.trim()) {
+      setError('ID Number is required');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setIdValidation(null);
+    setUserInfo(null);
+    setValidationResult(null);
+
+    try {
+      const response = await fetch('/api/users/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ idNumber }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to validate ID');
+      }
+
+      setIdValidation(data);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -50,17 +92,26 @@ export default function Home() {
       return;
     }
 
+    if (!sessionCookie) {
+      setError('Please get user info first to obtain session cookie');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setValidationResult(null);
 
     try {
-      const response = await fetch(`/api/users/${idNumber}/validateCode`, {
+      const response = await fetch('/api/idf/validate-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ 
+          idNumber,
+          code,
+          sessionCookie
+        }),
       });
 
       const data = await response.json();
@@ -133,6 +184,25 @@ export default function Home() {
           flexWrap: 'wrap'
         }}>
           <button
+            onClick={handleValidateId}
+            disabled={loading}
+            style={{
+              flex: 1,
+              padding: '0.75rem 1.5rem',
+              fontSize: '1rem',
+              backgroundColor: '#8b5cf6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1,
+              fontWeight: '600',
+              minWidth: '200px'
+            }}
+          >
+            {loading ? 'Validating...' : 'Validate ID'}
+          </button>
+          <button
             onClick={handleGetUserInfo}
             disabled={loading}
             style={{
@@ -153,6 +223,38 @@ export default function Home() {
           </button>
         </div>
 
+        {idValidation && (
+          <div style={{
+            marginBottom: '2rem',
+            padding: '1rem',
+            backgroundColor: idValidation.isValid ? '#f0fdf4' : '#fef2f2',
+            borderRadius: '6px',
+            border: `1px solid ${idValidation.isValid ? '#86efac' : '#fecaca'}`
+          }}>
+            <h2 style={{ marginTop: 0, color: idValidation.isValid ? '#166534' : '#991b1b' }}>
+              ID Validation: {idValidation.isValid ? 'Valid ✓' : 'Invalid ✗'}
+            </h2>
+            {idValidation.mobilePhone && (
+              <p style={{ margin: '0.5rem 0', color: '#166534', fontWeight: '600' }}>
+                Mobile Phone: {idValidation.mobilePhone}
+              </p>
+            )}
+            {idValidation.error && (
+              <p style={{ margin: '0.5rem 0', color: '#991b1b' }}>
+                Error: {idValidation.error}
+              </p>
+            )}
+            <pre style={{
+              margin: '0.5rem 0 0 0',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              fontSize: '0.9rem'
+            }}>
+              {JSON.stringify(idValidation, null, 2)}
+            </pre>
+          </div>
+        )}
+
         {userInfo && (
           <div style={{
             marginBottom: '2rem',
@@ -162,8 +264,16 @@ export default function Home() {
             border: '1px solid #bae6fd'
           }}>
             <h2 style={{ marginTop: 0, color: '#0369a1' }}>User Info:</h2>
+            <p style={{ margin: '0.5rem 0', color: '#0369a1', fontWeight: '600' }}>
+              Mobile Phone: {userInfo.mobilePhone}
+            </p>
+            {sessionCookie && (
+              <p style={{ margin: '0.5rem 0', color: '#0369a1', fontSize: '0.9rem' }}>
+                Session Cookie saved ✓
+              </p>
+            )}
             <pre style={{
-              margin: 0,
+              margin: '0.5rem 0 0 0',
               whiteSpace: 'pre-wrap',
               wordBreak: 'break-word',
               fontSize: '0.9rem'

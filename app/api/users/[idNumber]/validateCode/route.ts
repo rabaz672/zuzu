@@ -18,8 +18,8 @@ export async function POST(
       );
     }
 
-    const cookies = request.headers.get('cookie') || undefined;
-    const result = await proxy.validateCode(idNumber, body.code, cookies);
+    const cookieHeader = request.headers.get('cookie') || '';
+    const result = await proxy.validateCode(idNumber, body.code, cookieHeader);
     
     return NextResponse.json(result);
   } catch (error: any) {
