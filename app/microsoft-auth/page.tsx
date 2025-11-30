@@ -6,7 +6,9 @@ import Link from 'next/link';
 const MICROSOFT_CONFIG = {
   tenantId: '78820852-55fa-450b-908d-45c0d911e76b',
   clientId: '7b202b0a-1a3c-4dc2-8432-a29ae04973d5',
-  redirectUri: 'https://www.prat.idf.il/',
+  redirectUri: typeof window !== 'undefined' 
+    ? `${window.location.origin}/microsoft-callback`
+    : 'https://www.prat.idf.il/',
   scope: 'User.Read openid profile offline_access',
   authorizationEndpoint: 'https://login.microsoftonline.com/78820852-55fa-450b-908d-45c0d911e76b/oauth2/v2.0/authorize'
 };
