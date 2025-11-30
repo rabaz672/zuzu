@@ -30,12 +30,30 @@ export async function POST(request: NextRequest) {
 
     const result = await proxy.validateCode(body.idNumber, body.code, body.sessionCookie);
     
-    return NextResponse.json(result);
+    const response = NextResponse.json(result);
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+    
+    return response;
   } catch (error: any) {
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }
     );
+    errorResponse.headers.set('Access-Control-Allow-Origin', '*');
+    return errorResponse;
   }
+}
+
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
 }
 

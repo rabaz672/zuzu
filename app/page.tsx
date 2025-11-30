@@ -35,32 +35,23 @@ export default function Home() {
     setSessionCookie('');
 
     try {
-      if (useClientSide) {
-        const client = new IDFClient();
-        const data = await client.getUserInfo(idNumber);
-        setUserInfo(data);
-        if (data.sessionCookie) {
-          setSessionCookie(data.sessionCookie);
-        }
-      } else {
-        const response = await fetch('/api/idf/users', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ idNumber }),
-        });
+      const response = await fetch('/api/idf/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ idNumber }),
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to get user info');
-        }
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get user info');
+      }
 
-        setUserInfo(data);
-        if (data.sessionCookie) {
-          setSessionCookie(data.sessionCookie);
-        }
+      setUserInfo(data);
+      if (data.sessionCookie) {
+        setSessionCookie(data.sessionCookie);
       }
     } catch (err: any) {
       setError(err.message);
@@ -121,31 +112,25 @@ export default function Home() {
     setValidationResult(null);
 
     try {
-      if (useClientSide) {
-        const client = new IDFClient();
-        const data = await client.validateCode(idNumber, code, sessionCookie);
-        setValidationResult(data);
-      } else {
-        const response = await fetch('/api/idf/validate-code', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            idNumber,
-            code,
-            sessionCookie
-          }),
-        });
+      const response = await fetch('/api/idf/validate-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          idNumber,
+          code,
+          sessionCookie
+        }),
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to validate code');
-        }
-
-        setValidationResult(data);
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to validate code');
       }
+
+      setValidationResult(data);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -198,24 +183,16 @@ export default function Home() {
         <div style={{
           marginBottom: '2rem',
           padding: '0.75rem',
-          backgroundColor: '#f0f9ff',
+          backgroundColor: '#fef3c7',
           borderRadius: '6px',
-          border: '1px solid #bae6fd',
+          border: '1px solid #fbbf24',
           fontSize: '0.9rem'
         }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-            <input
-              type="checkbox"
-              checked={useClientSide}
-              onChange={(e) => setUseClientSide(e.target.checked)}
-              style={{ cursor: 'pointer' }}
-            />
-            <span style={{ fontWeight: '600' }}>Use Client-Side Requests</span>
-          </label>
-          <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: '#0369a1' }}>
-            {useClientSide 
-              ? '✓ Requests will come directly from your browser (Israel IP) - No proxy needed!' 
-              : 'Requests will go through server (may need proxy if server is not in Israel)'}
+          <p style={{ margin: 0, color: '#92400e', fontWeight: '600' }}>
+            ℹ️ Requests go through server (IDF API blocks direct browser requests due to CORS)
+          </p>
+          <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: '#92400e' }}>
+            If server is not in Israel, configure PROXY_URL in Vercel environment variables
           </p>
         </div>
 
