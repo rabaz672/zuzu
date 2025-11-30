@@ -58,7 +58,7 @@ class IDFProxy {
     return cookies.join('; ');
   }
 
-  private async makeRequest(url: string, options: RequestInit, retries: number = 2): Promise<Response> {
+  async makeRequest(url: string, options: RequestInit, retries: number = 2): Promise<Response> {
     if (this.proxyUrl) {
       for (let attempt = 0; attempt <= retries; attempt++) {
         try {
