@@ -85,6 +85,29 @@ export default function Home() {
               בדיקת שיוך אמיתי עם קוד אמינות שנשלח לטלפון
             </div>
           </Link>
+
+          <Link 
+            href="/microsoft-auth"
+            style={{
+              display: 'block',
+              padding: '1.5rem 2rem',
+              backgroundColor: '#0078d4',
+              color: 'white',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              fontSize: '1.2rem',
+              fontWeight: '600',
+              transition: 'background-color 0.2s',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0063b1'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0078d4'}
+          >
+            <div style={{ marginBottom: '0.5rem' }}>🔒 אימות Microsoft עם כניסה פיזית</div>
+            <div style={{ fontSize: '0.9rem', opacity: 0.9, fontWeight: 'normal' }}>
+              אימות מלא עם קוד אמינות והתחברות ל-Microsoft
+            </div>
+          </Link>
         </div>
       </div>
     </div>
