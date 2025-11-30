@@ -223,19 +223,13 @@ export default function MicrosoftAuth() {
       for (const { token, type } of tokensToTry) {
         try {
           console.log(`מנסה עם ${type}...`);
-          const response = await fetch('https://home.idf.il/api/auth', {
+          const response = await fetch('/api/microsoft/user-data', {
             method: 'POST',
             headers: {
-              'accept': 'application/json, text/plain, */*',
-              'authorization': `Bearer ${token}`,
-              'content-type': 'application/json',
-              'origin': 'https://www.home.idf.il',
-              'referer': 'https://www.home.idf.il/',
-              'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36'
+              'content-type': 'application/json'
             },
             body: JSON.stringify({
-              fetchUserData: true,
-              isCivil: false
+              token: token
             })
           });
 
@@ -252,8 +246,8 @@ export default function MicrosoftAuth() {
             localStorage.setItem('microsoft_auth_complete', JSON.stringify(fullData));
             return;
           } else {
-            const errorText = await response.text();
-            lastError = new Error(`שגיאה בקבלת נתוני משתמש עם ${type}: ${response.status} - ${errorText}`);
+            const errorData = await response.json();
+            lastError = new Error(`שגיאה בקבלת נתוני משתמש עם ${type}: ${response.status} - ${errorData.error || 'Unknown error'}`);
             console.log(`נכשל עם ${type}, מנסה הבא...`);
           }
         } catch (err: any) {
