@@ -11,7 +11,7 @@ class IDFProxy {
     if (this.proxyUrl) {
       console.log('Proxy configured:', this.proxyUrl);
     } else {
-      console.warn('No proxy configured - requests will be direct');
+      console.log('No proxy configured - using direct requests (server should be in Israel)');
     }
     this.defaultHeaders = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36',
