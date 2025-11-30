@@ -206,11 +206,22 @@ export default function MicrosoftAuth() {
     setError(null);
 
     try {
+      const savedTokens = JSON.parse(localStorage.getItem('microsoft_auth_tokens') || '{}');
+      const tokens = savedTokens.tokens || {};
+      
+      let tokenToUse = idToken;
+      let tokenType = 'id_token';
+      
+      if (!tokens.id_token && tokens.access_token) {
+        tokenToUse = tokens.access_token;
+        tokenType = 'access_token';
+      }
+
       const response = await fetch('https://home.idf.il/api/auth', {
         method: 'POST',
         headers: {
           'accept': 'application/json, text/plain, */*',
-          'authorization': `Bearer ${idToken}`,
+          'authorization': `Bearer ${tokenToUse}`,
           'content-type': 'application/json',
           'origin': 'https://www.home.idf.il',
           'referer': 'https://www.home.idf.il/',
@@ -223,6 +234,42 @@ export default function MicrosoftAuth() {
       });
 
       if (!response.ok) {
+        if (response.status === 401 && tokenType === 'id_token' && tokens.access_token) {
+          console.log('נסיון עם access_token במקום id_token...');
+          const retryResponse = await fetch('https://home.idf.il/api/auth', {
+            method: 'POST',
+            headers: {
+              'accept': 'application/json, text/plain, */*',
+              'authorization': `Bearer ${tokens.access_token}`,
+              'content-type': 'application/json',
+              'origin': 'https://www.home.idf.il',
+              'referer': 'https://www.home.idf.il/',
+              'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36'
+            },
+            body: JSON.stringify({
+              fetchUserData: true,
+              isCivil: false
+            })
+          });
+
+          if (!retryResponse.ok) {
+            const errorText = await retryResponse.text();
+            throw new Error(`שגיאה בקבלת נתוני משתמש: ${retryResponse.status} - ${errorText}`);
+          }
+
+          const data = await retryResponse.json();
+          setUserData(data);
+          
+          const fullData = {
+            ...savedTokens,
+            userData: data,
+            timestamp: new Date().toISOString()
+          };
+          
+          localStorage.setItem('microsoft_auth_complete', JSON.stringify(fullData));
+          return;
+        }
+        
         const errorText = await response.text();
         throw new Error(`שגיאה בקבלת נתוני משתמש: ${response.status} - ${errorText}`);
       }
@@ -230,7 +277,6 @@ export default function MicrosoftAuth() {
       const data = await response.json();
       setUserData(data);
       
-      const savedTokens = JSON.parse(localStorage.getItem('microsoft_auth_tokens') || '{}');
       const fullData = {
         ...savedTokens,
         userData: data,
