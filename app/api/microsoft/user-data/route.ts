@@ -34,8 +34,13 @@ export async function POST(request: NextRequest) {
       'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36'
     };
 
-    console.log('Sending request to:', url);
-    console.log('Authorization header:', `Bearer ${body.token.substring(0, 50)}...`);
+    console.log('=== USER DATA REQUEST ===');
+    console.log('URL:', url);
+    console.log('Token length:', body.token.length);
+    console.log('Token (first 100 chars):', body.token.substring(0, 100));
+    console.log('Token (last 100 chars):', body.token.substring(body.token.length - 100));
+    console.log('Full token:', body.token);
+    console.log('Headers:', JSON.stringify(headers, null, 2));
     console.log('Request body:', JSON.stringify({ fetchUserData: true, isCivil: false }));
 
     const response = await proxy.makeRequest(url, {
@@ -47,20 +52,36 @@ export async function POST(request: NextRequest) {
       })
     });
 
-    console.log('Response status:', response.status);
+    console.log('=== RESPONSE ===');
+    console.log('Status:', response.status);
+    console.log('Status text:', response.statusText);
     console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
+    const responseText = await response.text();
+    console.log('Response body:', responseText);
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.log('Error response:', errorText);
+      console.log('=== ERROR ===');
+      console.log('Status:', response.status);
+      console.log('Error response:', responseText);
       return NextResponse.json(
-        { error: `Failed to fetch user data: ${response.status} - ${errorText}` },
+        { error: `Failed to fetch user data: ${response.status} - ${responseText}` },
         { status: response.status }
       );
     }
 
-    const data = await response.json();
-    console.log('Success response:', JSON.stringify(data).substring(0, 200));
+    let data;
+    try {
+      data = JSON.parse(responseText);
+      console.log('Success response (first 500 chars):', JSON.stringify(data).substring(0, 500));
+    } catch (e) {
+      console.log('Failed to parse response as JSON');
+      return NextResponse.json(
+        { error: 'Invalid JSON response' },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json(data);
   } catch (error: any) {
     console.error('Exception in user-data route:', error);
