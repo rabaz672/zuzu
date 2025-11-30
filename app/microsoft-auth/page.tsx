@@ -230,13 +230,11 @@ export default function MicrosoftAuth() {
       const data = await response.json();
       setUserData(data);
       
+      const savedTokens = JSON.parse(localStorage.getItem('microsoft_auth_tokens') || '{}');
       const fullData = {
-        code: code,
-        state: state,
-        tokens: tokens,
+        ...savedTokens,
         userData: data,
-        timestamp: new Date().toISOString(),
-        idNumber: idNumber
+        timestamp: new Date().toISOString()
       };
       
       localStorage.setItem('microsoft_auth_complete', JSON.stringify(fullData));
