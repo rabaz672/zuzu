@@ -127,7 +127,12 @@ class IDFProxy {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('IDF API error:', response.status, errorText);
-      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      
+      if (response.status === 504 || response.status === 502) {
+        throw new Error(`Proxy/Server timeout error (${response.status}). The proxy may be down or slow. Try again or use a different proxy.`);
+      }
+      
+      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText.substring(0, 200)}`);
     }
 
     const cookies = this.extractCookies(response);
